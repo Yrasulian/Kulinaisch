@@ -46,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (!empty($lebensmittel[$i])) {
                             $ingredient_stmt->bindParam(':gericht_id', $gericht_id);
                             $ingredient_stmt->bindParam(':lebensmittel_id', $lebensmittel[$i]);
-                           
                             $ingredient_stmt->execute();
                         }
                     }
