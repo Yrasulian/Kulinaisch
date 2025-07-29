@@ -4,10 +4,10 @@ include("./include/header.php");
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['gerichtsname'] ?? '';
-    $cuisine_id = (int)($_POST['cuisine'] ?? 0);
-    $ernaehrungsweise_id = (int)($_POST['ernaehrungsweise'] ?? 0);
-    $dauer = (int)($_POST['dauer'] ?? 0);
-    $kalorien = (int)($_POST['kalorien'] ?? 0);
+    $cuisine_id = ($_POST['cuisine'] ?? 0);
+    $ernaehrungsweise_id = ($_POST['ernaehrungsweise'] ?? 0);
+    $dauer = ($_POST['dauer'] ?? 0);
+    $kalorien = ($_POST['kalorien'] ?? 0);
     $beschreibung = $_POST['beschreibung'] ?? '';
     $zubereitung = $_POST['zubereitung'] ?? '';
 
@@ -33,19 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Handle ingredients if they exist
                 if (!empty($_POST['lebensmittel']) && is_array($_POST['lebensmittel'])) {
-                    $lebensmittel = $_POST['lebensmittel'];
+                    $lebensmittel = $_POST['lebensmittel'] ?? [];
                     $mengen = $_POST['menge'] ?? [];
                     $einheiten = $_POST['einheit'] ?? [];
                     
                     // Insert ingredients - Fixed SQL query
-                    $ingredient_query = "INSERT INTO gericht_lebensmittel (gericht_id, lebensmittel_id, menge) 
-                                       VALUES (:gericht_id, :lebensmittel_id, :menge)";
+                    $ingredient_query = "INSERT INTO gericht_lebensmittel (gericht_id , menge, einheit) 
+                                         VALUES (:gericht_id, :menge, :einheit)";
                     $ingredient_stmt = $conn->prepare($ingredient_query);
                     
                     for ($i = 0; $i < count($lebensmittel); $i++) {
                         if (!empty($lebensmittel[$i])) {
                             $ingredient_stmt->bindParam(':gericht_id', $gericht_id);
-                            $ingredient_stmt->bindParam(':lebensmittel_id', $lebensmittel[$i]);
+
+                            $ingredient_stmt->bindParam(':menge', $menge[$i] );
+                            $ingredient_stmt->bindParam(':einheit', $einheit[$i] ); 
                             $ingredient_stmt->execute();
                         }
                     }
@@ -84,6 +86,17 @@ try {
 } catch (PDOException $e) {
     $error_message = "Fehler beim Laden der Ernährungsweisen: " . $e->getMessage();
 }
+// Fetch lebensmittel from database
+$lebensmittel = [];
+try {
+    $lebensmittel_query = "SELECT id, title FROM lebensmittel ORDER BY title";
+    $lebensmittel_stmt = $conn->prepare($lebensmittel_query);
+    $lebensmittel_stmt->execute();
+    $lebensmittel = $lebensmittel_stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $error_message = "Fehler beim Laden der Lebensmittel: " . $e->getMessage();
+}
+
 ?>
 
 <main class="container py-5">
@@ -163,9 +176,21 @@ try {
                                 <div id="zutaten-liste">
                                     <!-- Erste Zutat-Zeile -->
                                     <div class="row g-2 mb-2 align-items-center">
-                                        <div class="col-sm-5">
+                                        <!-- <div class="col-sm-5">
                                             <input type="text" class="form-control" name="lebensmittel[]" 
                                                    placeholder="Lebensmittel, z.B. Mehl">
+                                        </div> -->
+                                        <div class="col-md-5">
+                                            
+                                            <select id="lebensmittel" name="lebensmittel" class="form-select">
+                                                <option value="">Bitte wählen...</option>
+                                                <?php foreach ($lebensmittel as $lebensmittels): ?>
+                                                    <option value="<?php echo $lebensmittels['id']; ?>" 
+                                                            <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
                                         </div>
                                         <div class="col-sm-3">
                                             <input type="text" class="form-control" name="menge[]" placeholder="Menge">
@@ -231,8 +256,16 @@ try {
 
         // Füge die HTML-Struktur hinzu
         neueZeile.innerHTML = `
-            <div class="col-sm-5">
-                <input type="text" class="form-control" name="lebensmittel[]" placeholder="Lebensmittel">
+            <div class="col-md-5">
+                <select id="lebensmittel" name="lebensmittel" class="form-select">
+                    <option value="">Bitte wählen...</option>
+                    <?php foreach ($lebensmittel as $lebensmittels): ?>
+                        <option value="<?php echo $lebensmittels['id']; ?>" 
+                                <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-sm-3">
                 <input type="text" class="form-control" name="menge[]" placeholder="Menge">

@@ -27,7 +27,7 @@ include ("./include/sidebar.php");
 //     }
 // }
 
-$query_gericht = "SELECT * FROM gericht ORDER BY id DESC LIMIT 10"; 
+$query_gericht = "SELECT * FROM gericht ORDER BY id LIMIT 10"; 
 $gericht = $conn->query($query_gericht);
 
 
@@ -38,10 +38,10 @@ $gericht = $conn->query($query_gericht);
 
 
 
-$query_lebensmittel = "SELECT * FROM lebensmittel ORDER BY id DESC LIMIT 10";
+$query_lebensmittel = "SELECT * FROM lebensmittel ORDER BY id  LIMIT 10";
 $lebensmittel = $conn->query($query_lebensmittel);
 
-$query_gewuerz = "SELECT * FROM gewuerz ORDER BY id DESC lIMIT 10";
+$query_gewuerz = "SELECT * FROM gewuerz ORDER BY id  lIMIT 10";
 $gewuerz = $conn->query($query_gewuerz);
 ?>
 
@@ -60,7 +60,7 @@ $gewuerz = $conn->query($query_gewuerz);
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Zubereitung</th>
+                            <th>beschreibung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,8 +69,8 @@ $gewuerz = $conn->query($query_gewuerz);
                         while ($row = $gericht->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['id']??'-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['name']??'-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['zubereitung'] ??'-'); ?></td>
+                                <td><?php echo htmlspecialchars($row['title']??'-'); ?></td>
+                                <td><?php echo htmlspecialchars($row['beschreibung'] ??'-'); ?></td>
                             </tr>
                             <td>
                                 <a href="edit_gericht.php?id=<?php echo $row['id']?>" class = "btn btn-outline-info">Edit</a>
@@ -100,7 +100,7 @@ $gewuerz = $conn->query($query_gewuerz);
                         while ($row = $lebensmittel->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['id']??'-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['name']??'-'); ?></td>
+                                <td><?php echo htmlspecialchars($row['title']??'-'); ?></td>
                                 <td><?php echo htmlspecialchars($row['kalorien pro 100 gram'] ??'-'); ?></td>
                                 <td><?php echo htmlspecialchars($row['geschmack']??'-'); ?></td>
                             </tr>
@@ -129,7 +129,7 @@ $gewuerz = $conn->query($query_gewuerz);
                         while ($row = $gewuerz->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['id']??'-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['name']??'-'); ?></td>
+                                <td><?php echo htmlspecialchars($row['title']??'-'); ?></td>
                             </tr>
                             <td>
                                 <a href="edit_gewuerz.php?id=<?php echo $row['id']?>" class = "btn btn-outline-info">Edit</a>
