@@ -2,30 +2,7 @@
 include ("./include/header.php");
 include ("./include/sidebar.php");
 
-// if (isset($_GET['entity']) && isset($_GET['action']) && isset($_GET['id'])) {
-//     $entity = $_GET['entity'];
-//     $action = $_GET['action'];
-//     $id = $_GET['id'];
 
-//     if ($action == "delete") {
-//         if ($entity == "gericht") {
-//             $query = $conn->prepare("DELETE FROM gericht WHERE id = id");
-
-//         } elseif ($entity == "lebensmittel") {
-//             $query = $conn->prepare("DELETE FROM lebensmittel WHERE id = id");
-            
-//         } elseif ($entity == "gewuerz") {
-//             $query = $conn->prepare("DELETE FROM gewuerz WHERE id = id");
-        
-//         } else {
-//             die("Invalid entity specified.");
-//         }
-//        $query->execute();
-//         header("Location: index.php?message=Record deleted successfully");
-//         exit;
-
-//     }
-// }
 
 $query_gericht = "SELECT * FROM gericht ORDER BY id DESC LIMIT 10"; 
 $gericht = $conn->query($query_gericht);

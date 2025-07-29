@@ -6,8 +6,15 @@ include __DIR__ . '/../admin/include/db.php';
 // include ('./../admin/include/db.php');
 
 
-$query = "SELECT * FROM Ernaehrungsweise WHERE name LIKE :name";
-$results = $conn->prepare($query);
+$ernaehrungsweisen = [];
+try {
+    $ernaehrung_query = "SELECT id, title FROM ernaehrungsweise ORDER BY title";
+    $ernaehrung_stmt = $conn->prepare($ernaehrung_query);
+    $ernaehrung_stmt->execute();
+    $ernaehrungsweisen = $ernaehrung_stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $error_message = "Fehler beim Laden der Ernährungsweisen: " . $e->getMessage();
+}
 
 ?>
 <!DOCTYPE html>
@@ -61,25 +68,19 @@ $results = $conn->prepare($query);
                         <a class="nav-link" href="./search1.php">rezeptsuche</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="./import.php">Rezept Hinzufügen</a>
+                        <a class="nav-link " aria-current="page" href="./import.php">Rezept Hinzufügen</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ernaehrungsweise</a>
-                        <ul class="dropdown-menu">
-                            <?php
-                            if ($results->rowCount() > 0) {
-                                foreach ($results as $result) {
-                                    ?>
-                                    <li class="dropdown-item" <?php echo (isset($_GET['name']) && $result['id'] == $_GET['name'])? "active": ""; ?> >
-                                        <a class="dropdown-item" href="index.php?name=<?php echo $result['name'] ?>"><?php echo $result['name'] ?></a>
-                        
-                                    </li>
-                                    <?php
-                                }
+                        <ul class="dropdown-menu from-select" id="ernaehrungsweise" name="ernaehrungsweise" >
                             
-                            }
-                            
-                            ?>
+                                <?php foreach ($ernaehrungsweisen as $ernaehrung): ?>
+                                    <option value="<?php echo $ernaehrung['id']; ?>" 
+                                            <?php echo (isset($_POST['ernaehrungsweise']) && $_POST['ernaehrungsweise'] == $ernaehrung['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($ernaehrung['title']); ?>
+                                   
+                                <?php endforeach; ?>
+
                         </ul>
                     </li>
                     <li class="nav-item">

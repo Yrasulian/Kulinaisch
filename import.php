@@ -196,6 +196,7 @@ try {
                                                     <option value="<?php echo $lebensmittels['id']; ?>" 
                                                             <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
                                                         <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                                                        
                                                         <?php foreach ($gewuerz as $gewuerze): ?>
                                                         <option value="<?php echo $gewuerze['id']; ?>" 
                                                                 <?php echo (isset($_POST['gewuerz']) && $_POST['gewuerz'] == $gewuerze['id']) ? 'selected' : ''; ?>>

@@ -144,10 +144,10 @@
                             </a> 
                         </li> 
                         <li class="nav-item"> 
-                            <a class="nav-link d-flex align-items-center gap-2" href="./neue-gerichte.php"> 
+                            <a class="nav-link d-flex align-items-center gap-2" href="./lebensmittel.php"> 
                                 <svg class="bi" aria-hidden="true"><use xlink:href="#plus-circle"></use></svg>
                         
-                    Neue Gerichte
+                    Lebensmittel
                             </a>    
                             <!-- </li>
                             <li class="nav-item"> 
