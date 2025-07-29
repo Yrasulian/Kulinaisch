@@ -8,7 +8,7 @@ $results = [];
 // Perform search if search term exists
 if (!empty($searchTerm)) {
     try {
-        $query = "SELECT * FROM gericht WHERE name LIKE :searchTerm";
+        $query = "SELECT * FROM gericht WHERE title LIKE :searchTerm";
         $stmt = $conn->prepare($query);
         $stmt->bindValue(':searchTerm', '%' . htmlspecialchars($searchTerm) . '%', PDO::PARAM_STR);
         $stmt->execute();
@@ -44,15 +44,15 @@ if (!empty($searchTerm)) {
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Zubereitung</th>
+                                <th>beschreibung</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($results as $row): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($row['id'] ?? '-'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['name'] ?? '-'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['zubereitung'] ?? '-'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['title'] ?? '-'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['beschreibung'] ?? '-'); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

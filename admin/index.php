@@ -27,7 +27,7 @@ include ("./include/sidebar.php");
 //     }
 // }
 
-$query_gericht = "SELECT * FROM gericht ORDER BY id LIMIT 10"; 
+$query_gericht = "SELECT * FROM gericht ORDER BY id DESC LIMIT 10"; 
 $gericht = $conn->query($query_gericht);
 
 
@@ -38,7 +38,7 @@ $gericht = $conn->query($query_gericht);
 
 
 
-$query_lebensmittel = "SELECT * FROM lebensmittel ORDER BY id  LIMIT 10";
+$query_lebensmittel = "SELECT * FROM lebensmittel ORDER BY id DESC LIMIT 10";
 $lebensmittel = $conn->query($query_lebensmittel);
 
 $query_gewuerz = "SELECT * FROM gewuerz ORDER BY id  lIMIT 10";
