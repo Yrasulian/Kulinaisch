@@ -1,7 +1,7 @@
 <?php
 
-$con = new  PDO('mysql:host=localhost;dbname=mmdba_sose_25_8;charset=utf8mb4', 'root', '&$)2n6D708MkDVAp' ); 
-// $con = new  PDO('mysql:host=http://fm-cms-training.htwk-leipzig.de/phpmyadmin/index.php; dbname=mmdba_sose_25_8;charset=utf8mb4', 'MMDBA_SOSE_25_8', 'f4436cmf28' );
+// $con = new  PDO('mysql:host=localhost;dbname=mmdba_sose_25_8;charset=utf8mb4', 'root', '&$)2n6D708MkDVAp' ); 
+$con = new  PDO('mysql:host=http://fm-cms-training.htwk-leipzig.de/phpmyadmin/index.php; dbname=mmdba_sose_25_8;charset=utf8mb4', 'MMDBA_SOSE_25_8', 'f4436cmf28' );
 $query = "SELECT zubereitung FROM gericht WHERE name LIKE :name";
 $stmt = $con->prepare($query);
 

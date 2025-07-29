@@ -24,7 +24,7 @@ if (!empty($searchTerm)) {
                 -- Search in 'gericht' (Dishes)
                 SELECT
                     id,
-                    name,
+                    title AS name,
                     beschreibung AS description,
                     'Rezept' AS result_type,
                     CONCAT('recipe.php?id=', id) AS link
@@ -36,7 +36,7 @@ if (!empty($searchTerm)) {
                 -- Search in 'lebensmittel' (Food Items)
                 SELECT
                     id,
-                    name,
+                    title AS name,
                     NULL AS description, -- No description here
                     'Lebensmittel' AS result_type,
                     CONCAT('food_item.php?id=', id) AS link
@@ -47,7 +47,7 @@ if (!empty($searchTerm)) {
                 -- Search in 'gewuerz' (Spices)
                 SELECT
                     id,
-                    name,
+                    title AS name,
                     NULL AS description, -- No description here
                     'Gewürz' AS result_type,
                     CONCAT('spice.php?id=', id) AS link

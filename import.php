@@ -97,6 +97,17 @@ try {
     $error_message = "Fehler beim Laden der Lebensmittel: " . $e->getMessage();
 }
 
+// Fetch gewuerz from database
+$gewuerz = [];
+try {
+    $gewuerz_query = "SELECT id, title FROM gewuerz ORDER BY title";
+    $gewuerz_stmt = $conn->prepare($gewuerz_query);
+    $gewuerz_stmt->execute();
+    $gewuerz = $gewuerz_stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $error_message = "Fehler beim Laden der Gewürze: " . $e->getMessage();
+}
+
 ?>
 
 <main class="container py-5">
@@ -176,10 +187,7 @@ try {
                                 <div id="zutaten-liste">
                                     <!-- Erste Zutat-Zeile -->
                                     <div class="row g-2 mb-2 align-items-center">
-                                        <!-- <div class="col-sm-5">
-                                            <input type="text" class="form-control" name="lebensmittel[]" 
-                                                   placeholder="Lebensmittel, z.B. Mehl">
-                                        </div> -->
+                                        
                                         <div class="col-md-5">
                                             
                                             <select id="lebensmittel" name="lebensmittel" class="form-select">
@@ -188,10 +196,18 @@ try {
                                                     <option value="<?php echo $lebensmittels['id']; ?>" 
                                                             <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
                                                         <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                                                        <?php foreach ($gewuerz as $gewuerze): ?>
+                                                        <option value="<?php echo $gewuerze['id']; ?>" 
+                                                                <?php echo (isset($_POST['gewuerz']) && $_POST['gewuerz'] == $gewuerze['id']) ? 'selected' : ''; ?>>
+                                                            <?php echo htmlspecialchars($gewuerze['title']); ?>
+                                                        </option>
+                                                        <?php endforeach; ?>
+                                                        
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
+                                       
                                         <div class="col-sm-3">
                                             <input type="text" class="form-control" name="menge[]" placeholder="Menge">
                                         </div>
@@ -261,8 +277,14 @@ try {
                     <option value="">Bitte wählen...</option>
                     <?php foreach ($lebensmittel as $lebensmittels): ?>
                         <option value="<?php echo $lebensmittels['id']; ?>" 
-                                <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
+                            <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                    <?php foreach ($gewuerz as $gewuerze): ?>
+                        <option value="<?php echo $gewuerze['id']; ?>" 
+                            <?php echo (isset($_POST['gewuerz']) && $_POST['gewuerz'] == $gewuerze['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($gewuerze['title']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
