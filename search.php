@@ -125,7 +125,7 @@ if ($is_search_submitted) {
 ?>
 
 <!-- The HTML form is correct and does not need changes. It uses 'dauer' as the name, which we handle in PHP. -->
-<form class="py-5 container" action="search1.php" method="get">
+<form class="py-5 container" action="search.php" method="get">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-lg border-0 rounded-4">

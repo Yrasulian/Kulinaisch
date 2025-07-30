@@ -64,7 +64,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <a class="nav-link active" aria-current="page" href="./index.php">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="./search1.php">Rezeptsuche</a>
+                            <a class="nav-link" href="./search.php">Rezeptsuche</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="./import.php">Rezept Hinzufügen</a>
@@ -92,8 +92,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <a class="nav-link" href="./sign-in.php">Anmelden</a>
                         </li>
                     </ul>
-                    <!-- This search form should probably point to search1.php -->
-                    <form class="d-flex" role="search" action="search1.php" method="get">
+                    
+                    
+                    <form class="d-flex" role="search" action="search.php" method="get">
                         <input class="form-control me-2" name="gericht" type="search" placeholder="Rezept suchen..." aria-label="Search">
                         <button class="btn btn-outline-success" type="submit">Suchen</button>
                     </form>
