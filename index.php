@@ -1,72 +1,111 @@
-
 <?php
-include("./include/header.php");   
+// Use the new header file which contains the corrected navbar
+require_once __DIR__ . '/include/header.php';
 
-$query = "SELECT * FROM gericht_lebensmittel WHERE gericht_id = gericht_id ";
-$gericht_lebensmittel = $conn->query($query);
+// --- 1. FETCH AND PREPARE THE DATA ---
 
-$query = "SELECT * FROM gericht WHERE beschreibung IS NOT NULL ";
-$gericht = $conn->query($query);
+// Check if a filter has been applied from the navbar link
+$filter_id = isset($_GET['filter_ernaehrung_id']) ? (int)$_GET['filter_ernaehrung_id'] : null;
 
+$categorized_recipes = [];
+$error_message = '';
+
+try {
+    // Base of the query
+    $query = "
+        SELECT
+            g.id,
+            g.title AS gericht_title,
+            g.beschreibung,
+            e.title AS ernaehrungsweise_title
+        FROM
+            gericht g
+        JOIN
+            ernaehrungsweise e ON g.ernaehrungsweise_id = e.id
+        WHERE
+            g.beschreibung IS NOT NULL AND g.ernaehrungsweise_id IS NOT NULL
+    ";
+
+    // If a filter ID is present in the URL, add a WHERE clause to the query
+    if ($filter_id) {
+        $query .= " AND g.ernaehrungsweise_id = :filter_id ";
+    }
+
+    // Add the final ordering
+    $query .= " ORDER BY e.title ASC, g.title ASC";
+
+    $stmt = $conn->prepare($query);
+
+    // If we have a filter ID, bind it to the prepared statement to prevent SQL injection
+    if ($filter_id) {
+        $stmt->bindParam(':filter_id', $filter_id, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+    $all_recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Group the results into categories (this works for both filtered and unfiltered results)
+    foreach ($all_recipes as $recipe) {
+        $category_name = $recipe['ernaehrungsweise_title'];
+        $categorized_recipes[$category_name][] = $recipe;
+    }
+
+} catch (PDOException $e) {
+    $error_message = "Fehler beim Laden der Rezepte: " . $e->getMessage();
+}
 ?>
 
-<div>
-    <div class="container">
-        <h1 class="mt-5">Willkomen zu unserer Küche</h1>
-        <p class="lead">Hier kannst du viele leckere Gerichte finden</p>
-        <p>Nutze unsere Rezeptsuche um dich zu wundern.</p>
+<!-- Welcome Header -->
+<div class="container py-5">
+    <div class="text-center">
+        <h1 class="display-4">Willkommen in unserer Küche</h1>
+        <p class="lead text-muted">Entdecken Sie eine Vielfalt an köstlichen Gerichten, sortiert nach Ernährungsweise.</p>
     </div>
 </div>
 
+<!-- Main Content: Displaying the Recipes -->
 <div class="container">
-    <h2>Hauptspeisen</h2>
-    <div class="row">
-        <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
+
+    <?php if ($error_message): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
+    <?php elseif (empty($categorized_recipes)): ?>
+        <div class="alert alert-warning text-center">
+            Für die gewählte Kategorie wurden keine Rezepte gefunden. <a href="<?= $currentPage ?>" class="alert-link">Alle Kategorien anzeigen</a>.
         </div>
-         <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
-        </div>
-         <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
-        </div>
-        <div class="col md-6 p-4 ">
-            <h2>Vegan</h2>
-            <img src="./img/vegan-4809593_640.jpg" alt="vegan" class="img-fluid rounded-4">
-        </div>  
-    </div>      
-</div>
-<br><br>
-<div class="container">
-    <h2>Hauptspeisen</h2>
-    <div class="row">
-        <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
-        </div>
-         <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
-        </div>
-         <div class="col md-6 p-4 ">
-            <h2>Flexitarien</h2>
-            <img src="./img/hamburger-8026582_640.jpg" alt="hamburger" class="img-fluid rounded-4">
-        </div>
+    <?php else: ?>
         
-        <figure class="figure md-6 p-4">
-            <img src="./img/vegan-4809593_640" class="figure-img img-fluid rounded" alt="vegan">
-            <figcaption class="figure-caption">eine gesunde und umweltfreundliche Ernährungsweise.</figcaption>
-        </figure>
+        <!-- Loop through each category -->
+        <?php foreach ($categorized_recipes as $category_name => $recipes_in_category): ?>
+            
+            <div class="category-section mb-5">
+                <h2 class="pb-2 border-bottom mb-4"><?= htmlspecialchars($category_name) ?></h2>
+                
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    
+                    <!-- For each category, loop through its recipes -->
+                    <?php foreach ($recipes_in_category as $recipe): ?>
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=<?= urlencode($recipe['gericht_title']) ?>" class="card-img-top" alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title"><?= htmlspecialchars($recipe['gericht_title']) ?></h5>
+                                    <p class="card-text text-muted">
+                                        <?= htmlspecialchars(substr($recipe['beschreibung'], 0, 100)) ?>...
+                                    </p>
+                                    <a href="recipe_detail.php?id=<?= htmlspecialchars($recipe['id']) ?>" class="btn btn-outline-primary mt-auto">Rezept ansehen</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    
+                </div>
+            </div>
 
- 
-    </div>      
+        <?php endforeach; ?>
+
+    <?php endif; ?>
+
 </div>
 
-
-   
-    <script src="./js/bootstrap.bundle.main.js"></script>
-</body>
-</html>
+<?php require_once __DIR__ . '/include/footer.php'; ?>

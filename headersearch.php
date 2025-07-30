@@ -8,7 +8,7 @@ $results = [];
 // Perform search if search term exists
 if (!empty($searchTerm)) {
     try {
-        $query = "SELECT * FROM gericht WHERE title LIKE :searchTerm";
+        $query = "SELECT id, title,beschreibung FROM gericht WHERE title LIKE :searchTerm";
         $stmt = $conn->prepare($query);
         $stmt->bindValue(':searchTerm', '%' . htmlspecialchars($searchTerm) . '%', PDO::PARAM_STR);
         $stmt->execute();
