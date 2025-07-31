@@ -1,7 +1,6 @@
 <?php
 include("./include/header.php");
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['gerichtsname'] ?? '';
     $cuisine_id = ($_POST['cuisine'] ?? 0);
@@ -15,48 +14,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate required fields
     if (!empty($title) && !empty($cuisine_id) && !empty($dauer) && !empty($kalorien)) {
         try {
-            // Insert into gericht table
+            // 1. Insert into gericht table (dein Code war hier schon gut)
             $query = "INSERT INTO gericht (title, cuisine_id, ernaehrungsweise_id, zubereitungszeit_min, kalorien, beschreibung, zubereitung) 
                       VALUES (:title, :cuisine_id, :ernaehrungsweise_id, :zubereitungszeit_min, :kalorien, :beschreibung, :zubereitung)";
 
             $stmt = $conn->prepare($query);
-            $stmt->bindParam(':title', $title);
-            $stmt->bindParam(':cuisine_id', $cuisine_id);
-            $stmt->bindParam(':ernaehrungsweise_id', $ernaehrungsweise_id);
-            $stmt->bindParam(':zubereitungszeit_min', $dauer);
-            $stmt->bindParam(':kalorien', $kalorien);
-            $stmt->bindParam(':beschreibung', $beschreibung);
-            $stmt->bindParam(':zubereitung', $zubereitung); 
+            $stmt->execute([
+                ':title' => $title,
+                ':cuisine_id' => $cuisine_id,
+                ':ernaehrungsweise_id' => $ernaehrungsweise_id,
+                ':zubereitungszeit_min' => $dauer,
+                ':kalorien' => $kalorien,
+                ':beschreibung' => $beschreibung,
+                ':zubereitung' => $zubereitung
+            ]);
             
-            if ($stmt->execute()) {
-                $gericht_id = $conn->lastInsertId();
+            // 2. Die ID des gerade erstellten Gerichts holen
+            $gericht_id = $conn->lastInsertId();
+            
+            // 3. Handle ingredients (Lebensmittel) - KORRIGIERTER TEIL
+            if (!empty($_POST['lebensmittel']) && is_array($_POST['lebensmittel'])) {
+                // KORREKTUR: Die richtigen Array-Variablen holen
+                $lebensmittel_ids = $_POST['lebensmittel'];
+                $mengen = $_POST['menge'];
+                $einheiten = $_POST['einheit'];
                 
-                // Handle ingredients if they exist
-                if (!empty($_POST['lebensmittel']) && is_array($_POST['lebensmittel'])) {
-                    $lebensmittel = $_POST['lebensmittel'] ?? [];
-                    $mengen = $_POST['menge'] ?? [];
-                    $einheiten = $_POST['einheit'] ?? [];
-                    
-                    // Insert ingredients - Fixed SQL query
-                    $ingredient_query = "INSERT INTO gericht_lebensmittel (gericht_id , menge, einheit) 
-                                         VALUES (:gericht_id, :menge, :einheit)";
-                    $ingredient_stmt = $conn->prepare($ingredient_query);
-                    
-                    for ($i = 0; $i < count($lebensmittel); $i++) {
-                        if (!empty($lebensmittel[$i])) {
-                            $ingredient_stmt->bindParam(':gericht_id', $gericht_id);
-
-                            $ingredient_stmt->bindParam(':menge', $menge[$i] );
-                            $ingredient_stmt->bindParam(':einheit', $einheit[$i] ); 
-                            $ingredient_stmt->execute();
-                        }
+                // KORREKTUR: SQL-Query mit korrektem Platzhalter :lebensmittel_id
+                $ingredient_query = "INSERT INTO gericht_lebensmittel (gericht_id, lebensmittel_id, menge, einheit) 
+                                     VALUES (:gericht_id, :lebensmittel_id, :menge, :einheit)"; 
+                $ingredient_stmt = $conn->prepare($ingredient_query);
+                
+                // KORREKTUR: Durch die Arrays loopen und execute() mit Parametern aufrufen
+                for ($i = 0; $i < count($lebensmittel_ids); $i++) {
+                    // Nur verarbeiten, wenn ein Lebensmittel ausgewählt wurde
+                    if (!empty($lebensmittel_ids[$i])) {
+                        // Kombiniere Menge und Einheit zu einem String, z.B. "100 g"
+                        $menge = $mengen[$i] ;
+                        $einheit = $einheiten[$i];
+                        $ingredient_stmt->execute([
+                            ':gericht_id' => $gericht_id,
+                            ':lebensmittel_id' => $lebensmittel_ids[$i],
+                            ':menge' => $menge,
+                            ':einheit' => $einheit]);
                     }
                 }
-                
-                $success_message = "Rezept wurde erfolgreich gespeichert!";
-            } else {
-                $error_message = "Fehler beim Speichern des Rezepts.";
             }
+            
+            $success_message = "Rezept wurde erfolgreich mit ID $gericht_id gespeichert!";
+
         } catch (PDOException $e) {
             $error_message = "Datenbankfehler: " . $e->getMessage();
         }
@@ -190,7 +195,7 @@ try {
                                         
                                         <div class="col-md-5">
                                             
-                                            <select id="lebensmittel" name="lebensmittel" class="form-select">
+                                            <select id="lebensmittel" name="lebensmittel[]" class="form-select">
                                                 <option value="">Bitte wählen...</option>
                                                 <?php foreach ($lebensmittel as $lebensmittels): ?>
                                                     <option value="<?php echo $lebensmittels['id']; ?>" 
@@ -267,14 +272,14 @@ try {
     const zutatenListe = document.getElementById('zutaten-liste');
 
     addZutatButton.addEventListener('click', function() {
-        // Erstelle eine neue Zeile für die Zutat
+        
         const neueZeile = document.createElement('div');
         neueZeile.className = 'row g-2 mb-2 align-items-center';
 
-        // Füge die HTML-Struktur hinzu
+        
         neueZeile.innerHTML = `
             <div class="col-md-5">
-                <select id="lebensmittel" name="lebensmittel" class="form-select">
+                <select id="lebensmittel" name="lebensmittel[]" class="form-select">
                     <option value="">Bitte wählen...</option>
                     <?php foreach ($lebensmittel as $lebensmittels): ?>
                         <option value="<?php echo $lebensmittels['id']; ?>" 
@@ -311,11 +316,11 @@ try {
             </div>
         `;
 
-        // Hänge die neue Zeile an die Liste an
+        
         zutatenListe.appendChild(neueZeile);
     });
 
-    // Event delegation für das Entfernen von Zutaten
+    
     zutatenListe.addEventListener('click', function(e) {
         if (e.target.classList.contains('remove-zutat-btn') || e.target.closest('.remove-zutat-btn')) {
             e.target.closest('.row').remove();
