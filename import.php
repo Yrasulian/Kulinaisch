@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':zubereitung' => $zubereitung
             ]);
             
-            // 2. Die ID des gerade erstellten Gerichts holen
+            
             $gericht_id = $conn->lastInsertId();
             
-            // 3. Handle ingredients (Lebensmittel) - KORRIGIERTER TEIL
+            
             if (!empty($_POST['lebensmittel']) && is_array($_POST['lebensmittel'])) {
-                // KORREKTUR: Die richtigen Array-Variablen holen
+                
                 $lebensmittel_ids = $_POST['lebensmittel'];
                 $mengen = $_POST['menge'];
                 $einheiten = $_POST['einheit'];

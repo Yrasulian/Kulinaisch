@@ -20,8 +20,7 @@ try {
     $error_message = "Fehler beim Laden der Formulardaten: " . $e->getMessage();
 }
 
-// --- 2. GET AND SANITIZE USER INPUT ---
-
+// --- 2. CHECK IF THE FORM IS SUBMITTED AND HANDLE THE SEARCH ---
 $is_search_submitted = !empty(array_filter($_GET));
 $searchTerm = isset($_GET['gericht']) ? trim($_GET['gericht']) : '';
 $cuisineId = isset($_GET['cuisine_id']) && $_GET['cuisine_id'] !== '' ? (int)$_GET['cuisine_id'] : null;
@@ -34,6 +33,12 @@ $searchResults = [];
 
 if ($is_search_submitted) {
     try {
+        // *** KORREKTUR 1: Erstelle einen einzelnen String aus dem Lebensmittel-Array ***
+        // Dies ist der String, den wir für die FULLTEXT-Suche benötigen.
+        $inputLebensmittelString = implode(' ', $inputLebensmittel);
+
+        // *** KORREKTUR 2: Passe die SQL-Abfrage an ***
+        // Wir verwenden den neuen Platzhalter :inputLebensmittelString
         $sql = "
             SELECT
                 g.id,
@@ -42,9 +47,12 @@ if ($is_search_submitted) {
                 g.zubereitungszeit_min,
                 'Rezept' as result_type,
                 CONCAT('recipe_detail.php?id=', g.id) as link,
+                -- Verwende den neuen Platzhalter für den String
+                (CASE WHEN :inputLebensmittelString != '' THEN MATCH(g.title, g.beschreibung) AGAINST (:inputLebensmittelString IN NATURAL LANGUAGE MODE) ELSE 0 END) AS lebensmittel_score,
                 (CASE WHEN :searchTerm != '' THEN MATCH(g.title, g.beschreibung) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE) ELSE 0 END) AS title_score,
                 (CASE WHEN g.cuisine_id = :cuisineId THEN 20 ELSE 0 END) AS cuisine_score,
                 (CASE WHEN g.ernaehrungsweise_id = :ernaehrungsweiseId THEN 10 ELSE 0 END) AS ernaehrung_score,
+                -- Der 'dummy' Platzhalter für die IN-Klausel ist eine gute Technik und bleibt
                 COUNT(DISTINCT CASE WHEN l.title IN (dummy) THEN l.id END) AS matching_ingredients_count
             FROM gericht g
             LEFT JOIN gericht_lebensmittel gl ON g.id = gl.gericht_id
@@ -66,18 +74,18 @@ if ($is_search_submitted) {
         $sql .= " GROUP BY g.id ";
 
         if (!empty($inputLebensmittel)) {
-             $sql .= " HAVING matching_ingredients_count > 0";
+             $sql .= " HAVING matching_ingredients_count > 0"; 
         }
 
         $sql .= "
             ORDER BY
-                (title_score * 5) + (cuisine_score) + (ernaehrung_score) + (matching_ingredients_count * 50) DESC,
+                (title_score * 5) + (cuisine_score) + (ernaehrung_score) + (matching_ingredients_count * 10) + (lebensmittel_score * 10) DESC,
                 matching_ingredients_count DESC,
                 title_score DESC,
                 g.title ASC
         ";
 
-        // *** FIX: GENERATE NAMED PLACEHOLDERS FOR INGREDIENTS ***
+        // Dynamische IN-Klausel ersetzen (dein Code war hier schon korrekt)
         if (!empty($inputLebensmittel)) {
             $ingredientPlaceholders = [];
             foreach ($inputLebensmittel as $key => $value) {
@@ -91,12 +99,14 @@ if ($is_search_submitted) {
         $stmt = $conn->prepare($sql);
 
         // BIND PARAMETERS
-        // Bind static and scoring parameters
+        // *** KORREKTUR 3: Binde den neuen String-Parameter ***
+        $stmt->bindValue(':inputLebensmittelString', $inputLebensmittelString, PDO::PARAM_STR);
+        
+        // Binde die restlichen Parameter
         $stmt->bindValue(':searchTerm', $searchTerm, PDO::PARAM_STR);
         $stmt->bindValue(':cuisineId', $cuisineId, PDO::PARAM_INT);
         $stmt->bindValue(':ernaehrungsweiseId', $ernaehrungsweiseId, PDO::PARAM_INT);
 
-        // Bind parameters for the WHERE clause
         if (!empty($searchTerm)) {
             $stmt->bindValue(':searchTermWhere', $searchTerm, PDO::PARAM_STR);
         }
@@ -104,7 +114,6 @@ if ($is_search_submitted) {
             $stmt->bindValue(':maxZubereitungszeit', $maxZubereitungszeit, PDO::PARAM_INT);
         }
 
-        // *** FIX: BIND INGREDIENTS USING THEIR NEW NAMED PLACEHOLDERS ***
         if (!empty($inputLebensmittel)) {
             foreach ($inputLebensmittel as $key => $value) {
                 $stmt->bindValue(':ingred' . $key, $value, PDO::PARAM_STR);
@@ -119,12 +128,14 @@ if ($is_search_submitted) {
         }
 
     } catch (PDOException $e) {
+        // Gib die detaillierte Fehlermeldung aus, um bei der Fehlersuche zu helfen
         $error_message = "Fehler bei der Suche: " . $e->getMessage();
     }
 }
 ?>
+                                    
+                                        
 
-<!-- The HTML form is correct and does not need changes. It uses 'dauer' as the name, which we handle in PHP. -->
 <form class="py-5 container" action="search.php" method="get">
     <div class="row justify-content-center">
         <div class="col-lg-8">
