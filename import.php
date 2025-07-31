@@ -9,12 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kalorien = ($_POST['kalorien'] ?? 0);
     $beschreibung = $_POST['beschreibung'] ?? '';
     $zubereitung = $_POST['zubereitung'] ?? '';
+    $image = $_FILES['image']['name'];
+    $tmp_name = $_FILES['image']['tmp_name'];
 
     
     // Validate required fields
     if (!empty($title) && !empty($cuisine_id) && !empty($dauer) && !empty($kalorien)) {
         try {
-            // 1. Insert into gericht table (dein Code war hier schon gut)
+            
             $query = "INSERT INTO gericht (title, cuisine_id, ernaehrungsweise_id, zubereitungszeit_min, kalorien, beschreibung, zubereitung) 
                       VALUES (:title, :cuisine_id, :ernaehrungsweise_id, :zubereitungszeit_min, :kalorien, :beschreibung, :zubereitung)";
 
@@ -32,23 +34,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $gericht_id = $conn->lastInsertId();
             
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                
+                $upload_dir = './uploads'; 
+                $image_info = $_FILES['image'];
+
+                $image_extension = pathinfo($image_info['name'], PATHINFO_EXTENSION);
+                $new_filename = uniqid('img_', true) . '.' . $image_extension;
+                $target_path = $upload_dir . $new_filename;
+
+                // Datei in den Zielordner verschieben
+                if (move_uploaded_file($image_info['tmp_name'], $target_path)) {
+                    $photo_query = "INSERT INTO foto (title, datei, erstellungsdaum, gericht_id) 
+                                    VALUES (:title, :datei, NOW(), :gericht_id)";
+                    
+                    $photo_stmt = $conn->prepare($photo_query);
+                    $photo_stmt->execute([
+                        ':title' => $title,       
+                        ':datei' => $target_path, 
+                        ':gericht_id' => $gericht_id
+                    ]);
+
+                } else {
+                    
+                    $error_message = "Fehler beim Speichern des Bildes.";
+                }
+            }
             
+           
+
+
+
             if (!empty($_POST['lebensmittel']) && is_array($_POST['lebensmittel'])) {
                 
                 $lebensmittel_ids = $_POST['lebensmittel'];
                 $mengen = $_POST['menge'];
                 $einheiten = $_POST['einheit'];
                 
-                // KORREKTUR: SQL-Query mit korrektem Platzhalter :lebensmittel_id
+                
                 $ingredient_query = "INSERT INTO gericht_lebensmittel (gericht_id, lebensmittel_id, menge, einheit) 
                                      VALUES (:gericht_id, :lebensmittel_id, :menge, :einheit)"; 
                 $ingredient_stmt = $conn->prepare($ingredient_query);
                 
-                // KORREKTUR: Durch die Arrays loopen und execute() mit Parametern aufrufen
+                
                 for ($i = 0; $i < count($lebensmittel_ids); $i++) {
-                    // Nur verarbeiten, wenn ein Lebensmittel ausgewählt wurde
+                    
                     if (!empty($lebensmittel_ids[$i])) {
-                        // Kombiniere Menge und Einheit zu einem String, z.B. "100 g"
+                        
                         $menge = $mengen[$i] ;
                         $einheit = $einheiten[$i];
                         $ingredient_stmt->execute([
@@ -136,7 +168,7 @@ try {
                         </div>
                     <?php endif; ?>
                     
-                    <form method="POST" class="row g-4">
+                    <form method="POST" class="row g-4" enctype="multipart/form-data">
                         <!-- Reihe 1: Grundinformationen -->
                         <div class="col-md-12">
                             <label for="gerichtsname" class="form-label fw-semibold">Gerichtsname *</label>
@@ -200,17 +232,16 @@ try {
                                                 <?php foreach ($lebensmittel as $lebensmittels): ?>
                                                     <option value="<?php echo $lebensmittels['id']; ?>" 
                                                             <?php echo (isset($_POST['lebensmittel']) && $_POST['lebensmittel'] == $lebensmittels['id']) ? 'selected' : ''; ?>>
-                                                        <?php echo htmlspecialchars($lebensmittels['title']); ?>
-                                                        
+                                                            <?php echo htmlspecialchars($lebensmittels['title']); ?>
+                                                        <?php endforeach; ?>
+                                                        <br><h5>Gewürze</h5>
                                                         <?php foreach ($gewuerz as $gewuerze): ?>
                                                         <option value="<?php echo $gewuerze['id']; ?>" 
                                                                 <?php echo (isset($_POST['gewuerz']) && $_POST['gewuerz'] == $gewuerze['id']) ? 'selected' : ''; ?>>
                                                             <?php echo htmlspecialchars($gewuerze['title']); ?>
                                                         </option>
                                                         <?php endforeach; ?>
-                                                        
                                                     </option>
-                                                <?php endforeach; ?>
                                             </select>
                                         </div>
                                        
@@ -240,7 +271,12 @@ try {
                         <div class="col-12">
                             <label for="beschreibung" class="form-label fw-semibold">Beschreibung</label>
                             <textarea class="form-control" id="beschreibung" name="beschreibung" rows="3" 
-                                      placeholder="Kurze Beschreibung des Gerichts..."><?php echo htmlspecialchars($_POST['beschreibung'] ?? ''); ?></textarea>
+                                    placeholder="Kurze Beschreibung des Gerichts..."><?php echo htmlspecialchars($_POST['beschreibung'] ?? ''); ?></textarea>
+                                
+                                    <div class="col-12">
+                                        <label for="image" class="form-label fw-semibold">Foto hochladen</label>
+                                        <input class="form-control" type="file" id="image" name="image" accept="image/jpeg, image/png, image/gif">
+                                    </div>
                         </div>
                         
                         <!-- Reihe 5: Zubereitung -->

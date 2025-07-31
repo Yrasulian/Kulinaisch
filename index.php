@@ -1,17 +1,15 @@
 <?php
-// Use the new header file which contains the corrected navbar
+
 require_once __DIR__ . '/include/header.php';
 
-// --- 1. FETCH AND PREPARE THE DATA ---
 
-// Check if a filter has been applied from the navbar link
 $filter_id = isset($_GET['filter_ernaehrung_id']) ? (int)$_GET['filter_ernaehrung_id'] : null;
 
 $categorized_recipes = [];
 $error_message = '';
 
 try {
-    // Base of the query
+    
     $query = "
         SELECT
             g.id,
@@ -36,7 +34,7 @@ try {
 
     $stmt = $conn->prepare($query);
 
-    // If we have a filter ID, bind it to the prepared statement to prevent SQL injection
+    // If we have a filter ID, bind it to the prepared statement t prevent SQL injection
     if ($filter_id) {
         $stmt->bindParam(':filter_id', $filter_id, PDO::PARAM_INT);
     }
@@ -86,7 +84,7 @@ try {
                     <?php foreach ($recipes_in_category as $recipe): ?>
                         <div class="col">
                             <div class="card h-100 shadow-sm">
-                                <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=<?= urlencode($recipe['gericht_title']) ?>" class="card-img-top" alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
+                                <img src="./upload<?= urlencode($recipe['gericht_title']) ?>" class="card-img-top" alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
                                 
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title"><?= htmlspecialchars($recipe['gericht_title']) ?></h5>
