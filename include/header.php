@@ -69,25 +69,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         <li class="nav-item">
                             <a class="nav-link" href="./import.php">Rezept Hinzufügen</a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ernährungsweise</a>
-                            
-                            <!-- *** CORRECTED DROPDOWN MENU *** -->
-                            <ul class="dropdown-menu">
-                                <!-- Link to show all categories (removes the filter) -->
-                                <li><a class="dropdown-item" href="<?= $currentPage ?>">Alle anzeigen</a></li>
-                                <li><hr class="dropdown-divider"></li>
-
-                                <!-- Dynamically create a link for each dietary style -->
-                                <?php foreach ($ernaehrungsweisen_nav as $ernaehrung): ?>
-                                    <li>
-                                        <a class="dropdown-item" href="<?= $currentPage ?>?filter_ernaehrung_id=<?= htmlspecialchars($ernaehrung['id']) ?>">
-                                            <?= htmlspecialchars($ernaehrung['title']) ?>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="./sign-in.php">Anmelden</a>
                         </li>

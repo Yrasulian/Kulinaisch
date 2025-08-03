@@ -27,10 +27,12 @@ try {
         SELECT
             g.title, g.beschreibung, g.zubereitung, g.kalorien, g.zubereitungszeit_min,
             c.title AS cuisine_title,
-            e.title AS ernaehrungsweise_title
+            e.title AS ernaehrungsweise_title,
+            f.datei AS foto_datei
         FROM gericht g
         LEFT JOIN cuisine c ON g.cuisine_id = c.id
         LEFT JOIN ernaehrungsweise e ON g.ernaehrungsweise_id = e.id
+        LEFT JOIN foto f ON g.id = f.gericht_id
         WHERE g.id = :id
     ";
     $stmt_main = $conn->prepare($query_main);
@@ -97,9 +99,18 @@ try {
     <?php else: ?>
         <!-- Recipe content exists, display it -->
         <div class="row">
+            
             <div class="col-md-5 mb-4">
-                <!-- Placeholder Image -->
-                <img src="https://placehold.co/800x600/EFEFEF/AAAAAA?text=<?= urlencode($recipe['title']) ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($recipe['title']) ?>">
+                <?php if (!empty($recipe['foto_datei'])): ?>
+                    <img src="image.php?id=<?= urlencode($recipe_id) ?>"
+                        class="img-fluid rounded shadow-sm"
+                        style="width:457px; height:338px; object-fit: contain;"
+                        alt="<?= htmlspecialchars($recipe['title']) ?>">
+                <?php else: ?>
+                    <img src="https://placehold.co/800x600/EFEFEF/AAAAAA?text=<?= urlencode($recipe['title']) ?>"
+                        class="img-fluid rounded shadow-sm"
+                        alt="<?= htmlspecialchars($recipe['title']) ?>">
+                <?php endif; ?>
             </div>
             <div class="col-md-7">
                 <h1 class="display-5"><?= htmlspecialchars($recipe['title']) ?></h1>

@@ -15,11 +15,14 @@ try {
             g.id,
             g.title AS gericht_title,
             g.beschreibung,
-            e.title AS ernaehrungsweise_title
+            e.title AS ernaehrungsweise_title,
+            f.datei AS foto_datei
         FROM
             gericht g
         JOIN
             ernaehrungsweise e ON g.ernaehrungsweise_id = e.id
+        JOIN
+            foto f ON g.id = f.gericht_id
         WHERE
             g.beschreibung IS NOT NULL AND g.ernaehrungsweise_id IS NOT NULL
     ";
@@ -84,8 +87,16 @@ try {
                     <?php foreach ($recipes_in_category as $recipe): ?>
                         <div class="col">
                             <div class="card h-100 shadow-sm">
-                                <img src="./upload<?= urlencode($recipe['gericht_title']) ?>" class="card-img-top" alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
-                                
+                               <?php if (!empty($recipe['foto_datei'])): ?>
+                                    <img src="image.php?id=<?= urlencode($recipe['id']) ?>"
+                                        class="img-fluid rounded shadow-sm"
+                                        style="width:356px; height:266px; object-fit: contain;"
+                                        alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
+                                <?php else: ?>
+                                    <img src="https://placehold.co/800x600/EFEFEF/AAAAAA?text=<?= urlencode($recipe['gericht_title']) ?>"
+                                        class="img-fluid rounded shadow-sm"
+                                        alt="<?= htmlspecialchars($recipe['gericht_title']) ?>">
+                                <?php endif; ?>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title"><?= htmlspecialchars($recipe['gericht_title']) ?></h5>
                                     <p class="card-text text-muted">

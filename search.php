@@ -33,12 +33,10 @@ $searchResults = [];
 
 if ($is_search_submitted) {
     try {
-        // *** KORREKTUR 1: Erstelle einen einzelnen String aus dem Lebensmittel-Array ***
-        // Dies ist der String, den wir für die FULLTEXT-Suche benötigen.
+        
         $inputLebensmittelString = implode(' ', $inputLebensmittel);
 
-        // *** KORREKTUR 2: Passe die SQL-Abfrage an ***
-        // Wir verwenden den neuen Platzhalter :inputLebensmittelString
+       
         $sql = "
             SELECT
                 g.id,
